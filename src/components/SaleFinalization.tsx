@@ -9,10 +9,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useStudents } from '@/hooks/useStudents';
+import { useCreateSale } from '@/hooks/useSales';
+import { useSettings } from '@/hooks/useSettings';
 
 const SaleFinalization = () => {
-  const { state, completeSale, clearSelection } = useTheater();
+  const { state, clearSelection } = useTheater();
   const navigate = useNavigate();
+  const { data: students = [] } = useStudents();
+  const { data: settings } = useSettings();
+  const createSale = useCreateSale();
+  
   const [buyerName, setBuyerName] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
@@ -22,14 +29,15 @@ const SaleFinalization = () => {
     state.selectedSeats.includes(seat.id)
   );
 
-  const totalValue = selectedSeats.length * 10; // R$ 10 por ingresso
+  const ticketPrice = settings?.ticket_price || 10;
+  const totalValue = selectedSeats.length * ticketPrice;
 
   const handleStudentSelection = (studentId: string) => {
     setSelectedStudentId(studentId);
     if (studentId && studentId !== 'new') {
-      const student = state.students.find(s => s.id === studentId);
+      const student = students.find(s => s.id === studentId);
       if (student) {
-        setBuyerName(student.responsibleName);
+        setBuyerName(student.responsible_name);
         setBuyerPhone(student.phone);
         setUseStudentData(true);
       }
@@ -40,7 +48,7 @@ const SaleFinalization = () => {
     }
   };
 
-  const handleCompleteSale = (e: React.FormEvent) => {
+  const handleCompleteSale = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!buyerName || !buyerPhone) {
@@ -61,18 +69,21 @@ const SaleFinalization = () => {
       return;
     }
 
-    completeSale(
-      buyerName, 
-      buyerPhone, 
-      selectedStudentId && selectedStudentId !== 'new' ? selectedStudentId : undefined
-    );
+    try {
+      await createSale.mutateAsync({
+        buyer_name: buyerName,
+        buyer_phone: buyerPhone,
+        student_id: selectedStudentId && selectedStudentId !== 'new' ? selectedStudentId : undefined,
+        seats: state.selectedSeats,
+        total_value: totalValue,
+        sale_date: new Date().toISOString()
+      });
 
-    toast({
-      title: "Venda Realizada!",
-      description: `${selectedSeats.length} ingresso(s) vendido(s) com sucesso!`,
-    });
-
-    navigate('/');
+      clearSelection();
+      navigate('/');
+    } catch (error) {
+      console.error('Erro ao finalizar venda:', error);
+    }
   };
 
   const handleCancel = () => {
@@ -123,7 +134,7 @@ const SaleFinalization = () => {
                   {selectedSeats.map(seat => (
                     <div key={seat.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                       <span>{seat.sector} - Fileira {seat.row}, Assento {seat.number}</span>
-                      <span className="text-green-600 font-semibold">R$ 10,00</span>
+                      <span className="text-green-600 font-semibold">R$ {ticketPrice.toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
@@ -154,9 +165,9 @@ const SaleFinalization = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="new">Novo comprador</SelectItem>
-                    {state.students.map(student => (
+                    {students.map(student => (
                       <SelectItem key={student.id} value={student.id}>
-                        {student.studentName} - {student.responsibleName}
+                        {student.student_name} - {student.responsible_name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -187,8 +198,12 @@ const SaleFinalization = () => {
               </div>
 
               <div className="flex gap-2 pt-4">
-                <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700">
-                  Confirmar Venda
+                <Button 
+                  type="submit" 
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  disabled={createSale.isPending}
+                >
+                  {createSale.isPending ? 'Processando...' : 'Confirmar Venda'}
                 </Button>
                 <Button type="button" variant="outline" onClick={handleCancel}>
                   Cancelar

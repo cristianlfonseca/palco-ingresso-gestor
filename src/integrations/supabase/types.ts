@@ -36,6 +36,92 @@ export type Database = {
         }
         Relationships: []
       }
+      sales: {
+        Row: {
+          buyer_name: string
+          buyer_phone: string
+          created_at: string | null
+          id: string
+          sale_date: string | null
+          seats: string[]
+          student_id: string | null
+          total_value: number
+        }
+        Insert: {
+          buyer_name: string
+          buyer_phone: string
+          created_at?: string | null
+          id?: string
+          sale_date?: string | null
+          seats: string[]
+          student_id?: string | null
+          total_value: number
+        }
+        Update: {
+          buyer_name?: string
+          buyer_phone?: string
+          created_at?: string | null
+          id?: string
+          sale_date?: string | null
+          seats?: string[]
+          student_id?: string | null
+          total_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      settings: {
+        Row: {
+          id: string
+          ticket_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          ticket_price?: number
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          ticket_price?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          created_at: string | null
+          id: string
+          phone: string
+          responsible_name: string
+          student_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          phone: string
+          responsible_name: string
+          student_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          phone?: string
+          responsible_name?: string
+          student_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

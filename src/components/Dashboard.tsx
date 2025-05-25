@@ -1,47 +1,48 @@
 
 import React, { useState } from 'react';
-import { useTheater } from '../context/TheaterContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Users, ShoppingCart, MapPin, DollarSign, Calendar, Phone } from 'lucide-react';
+import { useStudents } from '@/hooks/useStudents';
+import { useSales } from '@/hooks/useSales';
+import { useTheater } from '../context/TheaterContext';
 
 const Dashboard = () => {
   const { state } = useTheater();
+  const { data: students = [] } = useStudents();
+  const { data: sales = [] } = useSales();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterSector, setFilterSector] = useState<string>('all');
   const [filterDate, setFilterDate] = useState('');
 
   // Estatísticas gerais
   const totalSeats = state.seats.length;
   const soldSeats = state.seats.filter(seat => seat.status === 'sold').length;
   const availableSeats = state.seats.filter(seat => seat.status === 'available').length;
-  const totalRevenue = state.sales.reduce((sum, sale) => sum + sale.totalValue, 0);
+  const totalRevenue = sales.reduce((sum, sale) => sum + sale.total_value, 0);
 
-  // Vendas por setor
-  const seatsByESQ = state.seats.filter(seat => seat.sector === 'PNE ESQ' && seat.status === 'sold').length;
-  const seatsByDIR = state.seats.filter(seat => seat.sector === 'PNE DIR' && seat.status === 'sold').length;
+  // Vendas por setor - baseado nas vendas reais
+  const seatsSoldESQ = sales.reduce((count, sale) => {
+    return count + sale.seats.filter(seatId => seatId.includes('ESQ')).length;
+  }, 0);
+  
+  const seatsSoldDIR = sales.reduce((count, sale) => {
+    return count + sale.seats.filter(seatId => seatId.includes('DIR')).length;
+  }, 0);
 
   // Filtrar vendas
-  const filteredSales = state.sales.filter(sale => {
-    const matchesSearch = sale.buyerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         sale.buyerPhone.includes(searchTerm);
-    
-    const matchesSector = filterSector === 'all' || 
-                         sale.seats.some(seatId => {
-                           const seat = state.seats.find(s => s.id === seatId);
-                           return seat?.sector === filterSector;
-                         });
+  const filteredSales = sales.filter(sale => {
+    const matchesSearch = sale.buyer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         sale.buyer_phone.includes(searchTerm);
 
     const matchesDate = !filterDate || 
-                       new Date(sale.saleDate).toISOString().split('T')[0] === filterDate;
+                       new Date(sale.sale_date).toISOString().split('T')[0] === filterDate;
 
-    return matchesSearch && matchesSector && matchesDate;
+    return matchesSearch && matchesDate;
   });
 
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString('pt-BR');
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString('pt-BR');
   };
 
   const getSeatInfo = (seatId: string) => {
@@ -74,22 +75,24 @@ const Dashboard = () => {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{soldSeats}</div>
+            <div className="text-2xl font-bold text-green-600">{seatsSoldESQ + seatsSoldDIR}</div>
             <p className="text-xs text-muted-foreground">
-              {((soldSeats / totalSeats) * 100).toFixed(1)}% ocupação
+              {sales.length} venda(s) realizada(s)
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Assentos Disponíveis</CardTitle>
+            <CardTitle className="text-sm font-medium">Alunos Cadastrados</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{availableSeats}</div>
+            <div className="text-2xl font-bold text-blue-600">{students.length}</div>
             <p className="text-xs text-muted-foreground">
-              Prontos para venda
+              {students.length === 0 
+                ? 'Nenhum aluno cadastrado' 
+                : 'Alunos no sistema'}
             </p>
           </CardContent>
         </Card>
@@ -102,7 +105,7 @@ const Dashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold text-green-600">R$ {totalRevenue.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">
-              {state.sales.length} venda(s) realizada(s)
+              Receita acumulada
             </p>
           </CardContent>
         </Card>
@@ -122,10 +125,10 @@ const Dashboard = () => {
                   <div className="w-32 bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-blue-600 h-2 rounded-full" 
-                      style={{ width: `${(seatsByESQ / (totalSeats / 2)) * 100}%` }}
+                      style={{ width: `${totalSeats > 0 ? (seatsSoldESQ / (totalSeats / 2)) * 100 : 0}%` }}
                     ></div>
                   </div>
-                  <span className="text-sm font-semibold">{seatsByESQ}</span>
+                  <span className="text-sm font-semibold">{seatsSoldESQ}</span>
                 </div>
               </div>
               <div className="flex justify-between items-center">
@@ -134,10 +137,10 @@ const Dashboard = () => {
                   <div className="w-32 bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-green-600 h-2 rounded-full" 
-                      style={{ width: `${(seatsByDIR / (totalSeats / 2)) * 100}%` }}
+                      style={{ width: `${totalSeats > 0 ? (seatsSoldDIR / (totalSeats / 2)) * 100 : 0}%` }}
                     ></div>
                   </div>
-                  <span className="text-sm font-semibold">{seatsByDIR}</span>
+                  <span className="text-sm font-semibold">{seatsSoldDIR}</span>
                 </div>
               </div>
             </div>
@@ -146,18 +149,24 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Alunos Cadastrados</CardTitle>
+            <CardTitle>Resumo de Vendas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">
-                {state.students.length}
+            <div className="space-y-4">
+              <div className="flex justify-between">
+                <span>Total de Vendas:</span>
+                <span className="font-semibold">{sales.length}</span>
               </div>
-              <p className="text-gray-600">
-                {state.students.length === 0 
-                  ? 'Nenhum aluno cadastrado' 
-                  : `${state.students.length} aluno(s) no sistema`}
-              </p>
+              <div className="flex justify-between">
+                <span>Ingressos Vendidos:</span>
+                <span className="font-semibold">{seatsSoldESQ + seatsSoldDIR}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Receita Média por Venda:</span>
+                <span className="font-semibold">
+                  R$ {sales.length > 0 ? (totalRevenue / sales.length).toFixed(2) : '0.00'}
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -174,16 +183,6 @@ const Dashboard = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1"
             />
-            <Select value={filterSector} onValueChange={setFilterSector}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Setor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os setores</SelectItem>
-                <SelectItem value="PNE ESQ">PNE ESQ</SelectItem>
-                <SelectItem value="PNE DIR">PNE DIR</SelectItem>
-              </SelectContent>
-            </Select>
             <Input
               type="date"
               value={filterDate}
@@ -195,7 +194,7 @@ const Dashboard = () => {
         <CardContent>
           {filteredSales.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              {state.sales.length === 0 
+              {sales.length === 0 
                 ? 'Nenhuma venda realizada ainda' 
                 : 'Nenhuma venda encontrada com os filtros aplicados'}
             </div>
@@ -205,19 +204,24 @@ const Dashboard = () => {
                 <div key={sale.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h4 className="font-semibold text-lg">{sale.buyerName}</h4>
+                      <h4 className="font-semibold text-lg">{sale.buyer_name}</h4>
                       <div className="flex items-center gap-1 text-gray-600">
                         <Phone className="w-4 h-4" />
-                        <span>{sale.buyerPhone}</span>
+                        <span>{sale.buyer_phone}</span>
                       </div>
+                      {sale.students && (
+                        <div className="text-sm text-blue-600">
+                          Aluno: {sale.students.student_name}
+                        </div>
+                      )}
                     </div>
                     <div className="text-right">
                       <div className="text-lg font-bold text-green-600">
-                        R$ {sale.totalValue.toFixed(2)}
+                        R$ {sale.total_value.toFixed(2)}
                       </div>
                       <div className="flex items-center gap-1 text-gray-600 text-sm">
                         <Calendar className="w-4 h-4" />
-                        <span>{formatDate(sale.saleDate)}</span>
+                        <span>{formatDate(sale.sale_date)}</span>
                       </div>
                     </div>
                   </div>

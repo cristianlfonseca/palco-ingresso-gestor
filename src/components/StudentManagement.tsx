@@ -1,62 +1,79 @@
 
 import React, { useState } from 'react';
-import { useTheater } from '../context/TheaterContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
-import { Student } from '../types';
+import { useStudents, useCreateStudent, useUpdateStudent, useDeleteStudent, Student } from '@/hooks/useStudents';
 
 const StudentManagement = () => {
-  const { state, addStudent, updateStudent, deleteStudent } = useTheater();
+  const { data: students = [], isLoading } = useStudents();
+  const createStudent = useCreateStudent();
+  const updateStudent = useUpdateStudent();
+  const deleteStudent = useDeleteStudent();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [formData, setFormData] = useState({
-    studentName: '',
-    responsibleName: '',
+    student_name: '',
+    responsible_name: '',
     phone: ''
   });
 
-  const filteredStudents = state.students.filter(student =>
-    student.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.responsibleName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredStudents = students.filter(student =>
+    student.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.responsible_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.phone.includes(searchTerm)
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (editingStudent) {
-      updateStudent(editingStudent.id, formData);
+      await updateStudent.mutateAsync({
+        id: editingStudent.id,
+        ...formData
+      });
       setEditingStudent(null);
     } else {
-      addStudent(formData);
+      await createStudent.mutateAsync(formData);
       setIsAddDialogOpen(false);
     }
-    setFormData({ studentName: '', responsibleName: '', phone: '' });
+    
+    setFormData({ student_name: '', responsible_name: '', phone: '' });
   };
 
   const handleEdit = (student: Student) => {
     setEditingStudent(student);
     setFormData({
-      studentName: student.studentName,
-      responsibleName: student.responsibleName,
+      student_name: student.student_name,
+      responsible_name: student.responsible_name,
       phone: student.phone
     });
   };
 
   const handleCancelEdit = () => {
     setEditingStudent(null);
-    setFormData({ studentName: '', responsibleName: '', phone: '' });
+    setFormData({ student_name: '', responsible_name: '', phone: '' });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este aluno?')) {
-      deleteStudent(id);
+      await deleteStudent.mutateAsync(id);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="text-center">Carregando alunos...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -75,20 +92,20 @@ const StudentManagement = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="studentName">Nome do Aluno</Label>
+                <Label htmlFor="student_name">Nome do Aluno</Label>
                 <Input
-                  id="studentName"
-                  value={formData.studentName}
-                  onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
+                  id="student_name"
+                  value={formData.student_name}
+                  onChange={(e) => setFormData({ ...formData, student_name: e.target.value })}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="responsibleName">Nome do Responsável</Label>
+                <Label htmlFor="responsible_name">Nome do Responsável</Label>
                 <Input
-                  id="responsibleName"
-                  value={formData.responsibleName}
-                  onChange={(e) => setFormData({ ...formData, responsibleName: e.target.value })}
+                  id="responsible_name"
+                  value={formData.responsible_name}
+                  onChange={(e) => setFormData({ ...formData, responsible_name: e.target.value })}
                   required
                 />
               </div>
@@ -103,7 +120,9 @@ const StudentManagement = () => {
                 />
               </div>
               <div className="flex gap-2">
-                <Button type="submit" className="flex-1">Salvar</Button>
+                <Button type="submit" className="flex-1" disabled={createStudent.isPending}>
+                  Salvar
+                </Button>
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancelar
                 </Button>
@@ -124,48 +143,65 @@ const StudentManagement = () => {
         />
       </div>
 
-      {/* Lista de Alunos */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredStudents.map(student => (
-          <Card key={student.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">{student.studentName}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p><strong>Responsável:</strong> {student.responsibleName}</p>
-                <p><strong>Telefone:</strong> {student.phone}</p>
-              </div>
-              <div className="flex gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(student)}
-                  className="flex-1"
-                >
-                  <Edit className="w-4 h-4 mr-1" />
-                  Editar
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDelete(student.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Tabela de Alunos */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Alunos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome do Aluno</TableHead>
+                <TableHead>Responsável</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Data de Cadastro</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredStudents.map(student => (
+                <TableRow key={student.id}>
+                  <TableCell className="font-medium">{student.student_name}</TableCell>
+                  <TableCell>{student.responsible_name}</TableCell>
+                  <TableCell>{student.phone}</TableCell>
+                  <TableCell>
+                    {student.created_at 
+                      ? new Date(student.created_at).toLocaleDateString('pt-BR')
+                      : '-'
+                    }
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(student)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(student.id)}
+                        disabled={deleteStudent.isPending}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
-      {filteredStudents.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">
-            {searchTerm ? 'Nenhum aluno encontrado' : 'Nenhum aluno cadastrado ainda'}
-          </p>
-        </div>
-      )}
+          {filteredStudents.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              {searchTerm ? 'Nenhum aluno encontrado' : 'Nenhum aluno cadastrado ainda'}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Modal de Edição */}
       {editingStudent && (
@@ -176,20 +212,20 @@ const StudentManagement = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="edit-studentName">Nome do Aluno</Label>
+                <Label htmlFor="edit-student_name">Nome do Aluno</Label>
                 <Input
-                  id="edit-studentName"
-                  value={formData.studentName}
-                  onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
+                  id="edit-student_name"
+                  value={formData.student_name}
+                  onChange={(e) => setFormData({ ...formData, student_name: e.target.value })}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="edit-responsibleName">Nome do Responsável</Label>
+                <Label htmlFor="edit-responsible_name">Nome do Responsável</Label>
                 <Input
-                  id="edit-responsibleName"
-                  value={formData.responsibleName}
-                  onChange={(e) => setFormData({ ...formData, responsibleName: e.target.value })}
+                  id="edit-responsible_name"
+                  value={formData.responsible_name}
+                  onChange={(e) => setFormData({ ...formData, responsible_name: e.target.value })}
                   required
                 />
               </div>
@@ -204,7 +240,9 @@ const StudentManagement = () => {
                 />
               </div>
               <div className="flex gap-2">
-                <Button type="submit" className="flex-1">Salvar Alterações</Button>
+                <Button type="submit" className="flex-1" disabled={updateStudent.isPending}>
+                  Salvar Alterações
+                </Button>
                 <Button type="button" variant="outline" onClick={handleCancelEdit}>
                   Cancelar
                 </Button>
