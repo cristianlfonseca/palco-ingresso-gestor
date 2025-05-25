@@ -2,10 +2,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, Users, ShoppingCart, BarChart3 } from 'lucide-react';
+import { Home, Users, ShoppingCart, BarChart3, LogOut } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const Navigation = () => {
   const location = useLocation();
+  const { user, signOut } = useAuth();
   
   const isActive = (path: string) => location.pathname === path;
   
@@ -59,6 +61,23 @@ const Navigation = () => {
                 Dashboard
               </Button>
             </Link>
+
+            {user && (
+              <div className="flex items-center space-x-2 ml-4 pl-4 border-l">
+                <span className="text-sm text-gray-600">
+                  Olá, {user.email}
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={signOut}
+                  className="flex items-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sair
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
