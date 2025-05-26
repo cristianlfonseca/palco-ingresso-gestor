@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -75,7 +74,7 @@ const Dashboard = () => {
   };
 
   const handleDeleteSale = async (saleId: string) => {
-    await deleteS sale.mutateAsync(saleId);
+    await deleteSale.mutateAsync(saleId);
   };
 
   return (
