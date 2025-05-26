@@ -1,11 +1,13 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Users, ShoppingCart, MapPin, DollarSign, Calendar, Phone, Trash2 } from 'lucide-react';
 import { useStudents } from '@/hooks/useStudents';
-import { useSales, useDeleteSale } from '@/hooks/useSales';
+import { useDeleteSale } from '@/hooks/useSales';
 import { useTheater } from '../context/TheaterContext';
+import { useSalesSync } from '@/hooks/useSalesSync';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +23,7 @@ import {
 const Dashboard = () => {
   const { state } = useTheater();
   const { data: students = [] } = useStudents();
-  const { data: sales = [] } = useSales();
+  const { sales } = useSalesSync();
   const deleteSale = useDeleteSale();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState('');

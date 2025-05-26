@@ -1,28 +1,21 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useTheater } from '../context/TheaterContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useSales } from '@/hooks/useSales';
+import { useSalesSync } from '@/hooks/useSalesSync';
 
 const SeatMap = () => {
-  const { state, selectSeat, deselectSeat, clearSelection, loadSoldSeatsFromDatabase } = useTheater();
-  const { data: sales = [] } = useSales();
+  const { state, selectSeat, deselectSeat, clearSelection } = useTheater();
+  const { isLoading } = useSalesSync();
   const navigate = useNavigate();
   
   const rows = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0, 21); // A-U
-
-  // Carregar assentos vendidos do banco de dados
-  useEffect(() => {
-    if (sales.length > 0) {
-      loadSoldSeatsFromDatabase(sales);
-    }
-  }, [sales, loadSoldSeatsFromDatabase]);
   
   const getSeatColor = (status: string) => {
     switch (status) {
       case 'available': return 'bg-green-100 hover:bg-green-200 border-green-300 text-green-800';
-      case 'selected': return 'bg-blue-500 text-white border-blue-600';
+      case 'selected': return 'bg-blue-500 hover:bg-blue-600 text-white border-blue-600';
       case 'sold': return 'bg-red-500 text-white border-red-600 cursor-not-allowed';
       case 'blocked': return 'bg-gray-400 text-white border-gray-500 cursor-not-allowed';
       default: return 'bg-gray-200';
@@ -50,6 +43,16 @@ const SeatMap = () => {
       navigate('/sale');
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="text-center">
+          <p>Carregando mapa de assentos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-6">

@@ -13,6 +13,7 @@ interface TheaterContextType {
   deleteStudent: (id: string) => void;
   completeSale: (buyerName: string, buyerPhone: string, studentId?: string) => void;
   loadSoldSeatsFromDatabase: (sales: any[]) => void;
+  refreshSeats: () => void;
 }
 
 const TheaterContext = createContext<TheaterContextType | undefined>(undefined);
@@ -105,7 +106,9 @@ type Action =
   | { type: 'UPDATE_STUDENT'; payload: { id: string; student: Partial<Student> } }
   | { type: 'DELETE_STUDENT'; payload: string }
   | { type: 'COMPLETE_SALE'; payload: Sale }
-  | { type: 'LOAD_STATE'; payload: TheaterState };
+  | { type: 'LOAD_STATE'; payload: TheaterState }
+  | { type: 'UPDATE_SEATS_FROM_SALES'; payload: any[] }
+  | { type: 'REFRESH_SEATS' };
 
 const theaterReducer = (state: TheaterState, action: Action): TheaterState => {
   switch (action.type) {
@@ -166,6 +169,37 @@ const theaterReducer = (state: TheaterState, action: Action): TheaterState => {
             ? { ...seat, status: 'sold', soldTo: action.payload.id }
             : seat
         ),
+        selectedSeats: []
+      };
+    
+    case 'UPDATE_SEATS_FROM_SALES':
+      const soldSeats: string[] = [];
+      action.payload.forEach(sale => {
+        if (sale.seats && Array.isArray(sale.seats)) {
+          soldSeats.push(...sale.seats);
+        }
+      });
+      
+      return {
+        ...state,
+        seats: state.seats.map(seat => {
+          if (soldSeats.includes(seat.id)) {
+            return { ...seat, status: 'sold' };
+          } else if (seat.status === 'sold' && !soldSeats.includes(seat.id)) {
+            return { ...seat, status: 'available' };
+          } else if (state.selectedSeats.includes(seat.id)) {
+            return { ...seat, status: 'selected' };
+          } else if (seat.status !== 'blocked') {
+            return { ...seat, status: 'available' };
+          }
+          return seat;
+        })
+      };
+
+    case 'REFRESH_SEATS':
+      return {
+        ...state,
+        seats: generateSeats(),
         selectedSeats: []
       };
     
@@ -243,23 +277,11 @@ export const TheaterProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const loadSoldSeatsFromDatabase = (sales: any[]) => {
-    const soldSeats: string[] = [];
-    sales.forEach(sale => {
-      if (sale.seats && Array.isArray(sale.seats)) {
-        soldSeats.push(...sale.seats);
-      }
-    });
-    
-    dispatch({
-      type: 'LOAD_STATE',
-      payload: {
-        ...state,
-        seats: state.seats.map(seat => ({
-          ...seat,
-          status: soldSeats.includes(seat.id) ? 'sold' : 'available'
-        }))
-      }
-    });
+    dispatch({ type: 'UPDATE_SEATS_FROM_SALES', payload: sales });
+  };
+
+  const refreshSeats = () => {
+    dispatch({ type: 'REFRESH_SEATS' });
   };
 
   return (
@@ -272,7 +294,8 @@ export const TheaterProvider: React.FC<{ children: React.ReactNode }> = ({ child
       updateStudent,
       deleteStudent,
       completeSale,
-      loadSoldSeatsFromDatabase
+      loadSoldSeatsFromDatabase,
+      refreshSeats
     }}>
       {children}
     </TheaterContext.Provider>
