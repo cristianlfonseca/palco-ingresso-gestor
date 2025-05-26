@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { TheaterState, Seat, Student, Sale } from '../types';
+import { useSales } from '@/hooks/useSales';
 
 interface TheaterContextType {
   state: TheaterState;
@@ -11,47 +12,79 @@ interface TheaterContextType {
   updateStudent: (id: string, student: Partial<Student>) => void;
   deleteStudent: (id: string) => void;
   completeSale: (buyerName: string, buyerPhone: string, studentId?: string) => void;
+  loadSoldSeatsFromDatabase: (sales: any[]) => void;
 }
 
 const TheaterContext = createContext<TheaterContextType | undefined>(undefined);
 
-// Gerar layout de assentos baseado na imagem
+// Gerar layout de assentos conforme especificação
 const generateSeats = (): Seat[] => {
   const seats: Seat[] = [];
   const rows = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0, 21); // A-U
   
-  // Configuração específica de assentos por fileira baseada na imagem
-  const seatConfig: { [key: string]: number } = {
-    'A': 4, 'B': 6, 'C': 7, 'D': 8, 'E': 9, 'F': 10,
-    'G': 11, 'H': 12, 'I': 13, 'J': 14, 'K': 15, 'L': 16,
-    'M': 17, 'N': 18, 'O': 19, 'P': 20, 'Q': 21, 'R': 22,
-    'S': 23, 'T': 24, 'U': 28
+  // Configuração específica de assentos por fileira
+  const seatConfig: { [key: string]: { esq: number[], central: number[], dir: number[] } } = {
+    'A': { esq: [1, 2, 3], central: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21], dir: [22, 23, 24] },
+    'B': { esq: [1, 2, 3, 4, 5], central: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], dir: [24, 25, 26, 27, 28] },
+    'C': { esq: [1, 2, 3, 4, 5, 6], central: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], dir: [25, 26, 27, 28, 29, 30] },
+    'D': { esq: [1, 2, 3, 4, 5, 6, 7], central: [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25], dir: [26, 27, 28, 29, 30, 31, 32] },
+    'E': { esq: [1, 2, 3, 4, 5, 6, 7, 8], central: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26], dir: [27, 28, 29, 30, 31, 32, 33, 34] },
+    'F': { esq: [1, 2, 3, 4, 5, 6, 7, 8, 9], central: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27], dir: [28, 29, 30, 31, 32, 33, 34, 35, 36] }
+  };
+
+  // Para fileiras G até T (de 1 a 10 na esquerda, central, de 29 a 38 na direita)
+  for (let i = 6; i < 20; i++) { // G=6, H=7, ..., T=19
+    const row = rows[i];
+    seatConfig[row] = {
+      esq: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      central: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28],
+      dir: [29, 30, 31, 32, 33, 34, 35, 36, 37, 38]
+    };
+  }
+
+  // Fila U (de 1 a 9 na esquerda, central, de 28 a 36 na direita)
+  seatConfig['U'] = {
+    esq: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    central: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27],
+    dir: [28, 29, 30, 31, 32, 33, 34, 35, 36]
   };
 
   rows.forEach(row => {
-    const seatsInRow = seatConfig[row] || 10;
+    const config = seatConfig[row];
+    if (!config) return;
     
     // PNE ESQ
-    for (let i = 1; i <= seatsInRow; i++) {
+    config.esq.forEach(number => {
       seats.push({
-        id: `${row}${i}-ESQ`,
+        id: `${row}${number}-ESQ`,
         sector: 'PNE ESQ',
         row,
-        number: i,
+        number,
         status: 'available'
       });
-    }
+    });
+    
+    // CENTRAL
+    config.central.forEach(number => {
+      seats.push({
+        id: `${row}${number}-CENTRAL`,
+        sector: 'CENTRAL',
+        row,
+        number,
+        status: 'available'
+      });
+    });
     
     // PNE DIR
-    for (let i = 1; i <= seatsInRow; i++) {
+    config.dir.forEach(number => {
       seats.push({
-        id: `${row}${i}-DIR`,
+        id: `${row}${number}-DIR`,
         sector: 'PNE DIR',
         row,
-        number: i,
+        number,
         status: 'available'
       });
-    }
+    });
   });
 
   return seats;
@@ -209,6 +242,26 @@ export const TheaterProvider: React.FC<{ children: React.ReactNode }> = ({ child
     dispatch({ type: 'COMPLETE_SALE', payload: sale });
   };
 
+  const loadSoldSeatsFromDatabase = (sales: any[]) => {
+    const soldSeats: string[] = [];
+    sales.forEach(sale => {
+      if (sale.seats && Array.isArray(sale.seats)) {
+        soldSeats.push(...sale.seats);
+      }
+    });
+    
+    dispatch({
+      type: 'LOAD_STATE',
+      payload: {
+        ...state,
+        seats: state.seats.map(seat => ({
+          ...seat,
+          status: soldSeats.includes(seat.id) ? 'sold' : 'available'
+        }))
+      }
+    });
+  };
+
   return (
     <TheaterContext.Provider value={{
       state,
@@ -218,7 +271,8 @@ export const TheaterProvider: React.FC<{ children: React.ReactNode }> = ({ child
       addStudent,
       updateStudent,
       deleteStudent,
-      completeSale
+      completeSale,
+      loadSoldSeatsFromDatabase
     }}>
       {children}
     </TheaterContext.Provider>

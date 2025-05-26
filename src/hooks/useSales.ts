@@ -70,3 +70,33 @@ export const useCreateSale = () => {
     }
   });
 };
+
+export const useDeleteSale = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (saleId: string) => {
+      const { error } = await supabase
+        .from('sales')
+        .delete()
+        .eq('id', saleId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
+      toast({
+        title: "Sucesso",
+        description: "Venda deletada com sucesso!",
+      });
+    },
+    onError: (error) => {
+      console.error('Erro ao deletar venda:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao deletar venda",
+        variant: "destructive"
+      });
+    }
+  });
+};

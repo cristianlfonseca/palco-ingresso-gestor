@@ -1,14 +1,23 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTheater } from '../context/TheaterContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useSales } from '@/hooks/useSales';
 
 const SeatMap = () => {
-  const { state, selectSeat, deselectSeat, clearSelection } = useTheater();
+  const { state, selectSeat, deselectSeat, clearSelection, loadSoldSeatsFromDatabase } = useTheater();
+  const { data: sales = [] } = useSales();
   const navigate = useNavigate();
   
   const rows = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0, 21); // A-U
+
+  // Carregar assentos vendidos do banco de dados
+  useEffect(() => {
+    if (sales.length > 0) {
+      loadSoldSeatsFromDatabase(sales);
+    }
+  }, [sales, loadSoldSeatsFromDatabase]);
   
   const getSeatColor = (status: string) => {
     switch (status) {
@@ -30,7 +39,7 @@ const SeatMap = () => {
     }
   };
 
-  const getSeatsByRowAndSector = (row: string, sector: 'PNE ESQ' | 'PNE DIR') => {
+  const getSeatsByRowAndSector = (row: string, sector: 'PNE ESQ' | 'CENTRAL' | 'PNE DIR') => {
     return state.seats
       .filter(seat => seat.row === row && seat.sector === sector)
       .sort((a, b) => a.number - b.number);
@@ -74,16 +83,48 @@ const SeatMap = () => {
       </div>
 
       {/* Mapa de Assentos */}
-      <div className="flex justify-center gap-12 mb-8">
+      <div className="flex justify-center gap-8 mb-8">
         {/* Setor PNE ESQ */}
         <div className="flex flex-col items-center">
           <h3 className="text-xl font-bold mb-4 text-gray-700">PNE ESQ</h3>
           <div className="space-y-2">
             {rows.map(row => {
               const seats = getSeatsByRowAndSector(row, 'PNE ESQ');
+              if (seats.length === 0) return null;
               return (
                 <div key={`${row}-ESQ`} className="flex items-center gap-1">
                   <span className="w-8 text-center font-bold text-gray-600">{row}</span>
+                  <div className="flex gap-1">
+                    {seats.map(seat => (
+                      <button
+                        key={seat.id}
+                        onClick={() => handleSeatClick(seat.id, seat.status)}
+                        className={`
+                          w-8 h-8 text-xs font-semibold border-2 rounded transition-all duration-200
+                          ${getSeatColor(seat.status)}
+                          ${seat.status === 'available' ? 'hover:scale-105' : ''}
+                        `}
+                        disabled={seat.status === 'sold' || seat.status === 'blocked'}
+                      >
+                        {seat.number}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Setor CENTRAL */}
+        <div className="flex flex-col items-center">
+          <h3 className="text-xl font-bold mb-4 text-gray-700">CENTRAL</h3>
+          <div className="space-y-2">
+            {rows.map(row => {
+              const seats = getSeatsByRowAndSector(row, 'CENTRAL');
+              if (seats.length === 0) return null;
+              return (
+                <div key={`${row}-CENTRAL`} className="flex items-center gap-1">
                   <div className="flex gap-1">
                     {seats.map(seat => (
                       <button
@@ -112,6 +153,7 @@ const SeatMap = () => {
           <div className="space-y-2">
             {rows.map(row => {
               const seats = getSeatsByRowAndSector(row, 'PNE DIR');
+              if (seats.length === 0) return null;
               return (
                 <div key={`${row}-DIR`} className="flex items-center gap-1">
                   <div className="flex gap-1">

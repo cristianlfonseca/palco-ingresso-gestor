@@ -2,33 +2,49 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, ShoppingCart, MapPin, DollarSign, Calendar, Phone } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Users, ShoppingCart, MapPin, DollarSign, Calendar, Phone, Trash2 } from 'lucide-react';
 import { useStudents } from '@/hooks/useStudents';
-import { useSales } from '@/hooks/useSales';
+import { useSales, useDeleteSale } from '@/hooks/useSales';
 import { useTheater } from '../context/TheaterContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const Dashboard = () => {
   const { state } = useTheater();
   const { data: students = [] } = useStudents();
   const { data: sales = [] } = useSales();
+  const deleteSale = useDeleteSale();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState('');
 
   // Estatísticas gerais
   const totalSeats = state.seats.length;
-  const soldSeats = state.seats.filter(seat => seat.status === 'sold').length;
-  const availableSeats = state.seats.filter(seat => seat.status === 'available').length;
   const totalRevenue = sales.reduce((sum, sale) => sum + sale.total_value, 0);
 
   // Vendas por setor - baseado nas vendas reais
   const seatsSoldESQ = sales.reduce((count, sale) => {
-    return count + sale.seats.filter(seatId => seatId.includes('ESQ')).length;
+    return count + sale.seats.filter(seatId => seatId.includes('-ESQ')).length;
+  }, 0);
+  
+  const seatsSoldCENTRAL = sales.reduce((count, sale) => {
+    return count + sale.seats.filter(seatId => seatId.includes('-CENTRAL')).length;
   }, 0);
   
   const seatsSoldDIR = sales.reduce((count, sale) => {
-    return count + sale.seats.filter(seatId => seatId.includes('DIR')).length;
+    return count + sale.seats.filter(seatId => seatId.includes('-DIR')).length;
   }, 0);
+
+  const totalSoldSeats = seatsSoldESQ + seatsSoldCENTRAL + seatsSoldDIR;
 
   // Filtrar vendas
   const filteredSales = sales.filter(sale => {
@@ -46,8 +62,20 @@ const Dashboard = () => {
   };
 
   const getSeatInfo = (seatId: string) => {
-    const seat = state.seats.find(s => s.id === seatId);
-    return seat ? `${seat.sector} ${seat.row}${seat.number}` : seatId;
+    // Parse do formato "A1-ESQ" para extrair informações
+    const parts = seatId.split('-');
+    if (parts.length === 2) {
+      const seatPart = parts[0]; // A1
+      const sector = parts[1]; // ESQ
+      const row = seatPart.charAt(0); // A
+      const number = seatPart.slice(1); // 1
+      return `${sector} ${row}${number}`;
+    }
+    return seatId;
+  };
+
+  const handleDeleteSale = async (saleId: string) => {
+    await deleteS sale.mutateAsync(saleId);
   };
 
   return (
@@ -75,7 +103,7 @@ const Dashboard = () => {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{seatsSoldESQ + seatsSoldDIR}</div>
+            <div className="text-2xl font-bold text-green-600">{totalSoldSeats}</div>
             <p className="text-xs text-muted-foreground">
               {sales.length} venda(s) realizada(s)
             </p>
@@ -125,10 +153,22 @@ const Dashboard = () => {
                   <div className="w-32 bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-blue-600 h-2 rounded-full" 
-                      style={{ width: `${totalSeats > 0 ? (seatsSoldESQ / (totalSeats / 2)) * 100 : 0}%` }}
+                      style={{ width: `${totalSeats > 0 ? (seatsSoldESQ / (totalSeats / 3)) * 100 : 0}%` }}
                     ></div>
                   </div>
                   <span className="text-sm font-semibold">{seatsSoldESQ}</span>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>CENTRAL</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-32 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-green-600 h-2 rounded-full" 
+                      style={{ width: `${totalSeats > 0 ? (seatsSoldCENTRAL / (totalSeats / 3)) * 100 : 0}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm font-semibold">{seatsSoldCENTRAL}</span>
                 </div>
               </div>
               <div className="flex justify-between items-center">
@@ -136,8 +176,8 @@ const Dashboard = () => {
                 <div className="flex items-center gap-2">
                   <div className="w-32 bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-green-600 h-2 rounded-full" 
-                      style={{ width: `${totalSeats > 0 ? (seatsSoldDIR / (totalSeats / 2)) * 100 : 0}%` }}
+                      className="bg-orange-600 h-2 rounded-full" 
+                      style={{ width: `${totalSeats > 0 ? (seatsSoldDIR / (totalSeats / 3)) * 100 : 0}%` }}
                     ></div>
                   </div>
                   <span className="text-sm font-semibold">{seatsSoldDIR}</span>
@@ -159,7 +199,7 @@ const Dashboard = () => {
               </div>
               <div className="flex justify-between">
                 <span>Ingressos Vendidos:</span>
-                <span className="font-semibold">{seatsSoldESQ + seatsSoldDIR}</span>
+                <span className="font-semibold">{totalSoldSeats}</span>
               </div>
               <div className="flex justify-between">
                 <span>Receita Média por Venda:</span>
@@ -215,14 +255,37 @@ const Dashboard = () => {
                         </div>
                       )}
                     </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-green-600">
-                        R$ {sale.total_value.toFixed(2)}
+                    <div className="text-right flex items-center gap-4">
+                      <div>
+                        <div className="text-lg font-bold text-green-600">
+                          R$ {sale.total_value.toFixed(2)}
+                        </div>
+                        <div className="flex items-center gap-1 text-gray-600 text-sm">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(sale.sale_date)}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-gray-600 text-sm">
-                        <Calendar className="w-4 h-4" />
-                        <span>{formatDate(sale.sale_date)}</span>
-                      </div>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Deletar Venda</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja deletar esta venda? Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteSale(sale.id)}>
+                              Deletar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                   <div>
