@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +15,8 @@ import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
+import PasswordControl from "./pages/PasswordControl";
+import Panel from "./pages/Panel";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +29,7 @@ const App = () => (
             <div className="min-h-screen bg-gray-50">
               <Routes>
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/panel" element={<Panel />} />
                 <Route path="/*" element={
                   <ProtectedRoute>
                     <Navigation />
@@ -35,6 +39,7 @@ const App = () => (
                       <Route path="/sale" element={<Sale />} />
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/settings" element={<Settings />} />
+                      <Route path="/password-control" element={<PasswordControl />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </ProtectedRoute>
