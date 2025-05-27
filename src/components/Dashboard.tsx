@@ -22,10 +22,12 @@ import {
 const Dashboard = () => {
   const { state } = useTheater();
   const { data: students = [] } = useStudents();
-  const { sales } = useSalesSync(); // Usando o hook que sincroniza automaticamente
+  const { sales, isLoading } = useSalesSync();
   const deleteSale = useDeleteSale();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState('');
+
+  console.log('Dashboard rendering with sales:', sales?.length, 'isLoading:', isLoading);
 
   // ... keep existing code (estatísticas gerais, vendas por setor, etc.)
   const totalSeats = state.seats.length;
@@ -72,8 +74,25 @@ const Dashboard = () => {
   };
 
   const handleDeleteSale = async (saleId: string) => {
-    await deleteSale.mutateAsync(saleId);
+    console.log('Dashboard: Initiating sale deletion for ID:', saleId);
+    try {
+      await deleteSale.mutateAsync(saleId);
+      console.log('Dashboard: Sale deletion completed');
+    } catch (error) {
+      console.error('Dashboard: Error deleting sale:', error);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <h2 className="text-3xl font-bold text-gray-900 mb-6">Dashboard</h2>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg">Carregando dados...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -264,7 +283,7 @@ const Dashboard = () => {
                       </div>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
+                          <Button variant="destructive" size="sm" disabled={deleteSale.isPending}>
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </AlertDialogTrigger>

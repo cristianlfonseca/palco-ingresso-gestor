@@ -22,6 +22,7 @@ export const useSales = () => {
   return useQuery({
     queryKey: ['sales'],
     queryFn: async () => {
+      console.log('Fetching sales from database...');
       const { data, error } = await supabase
         .from('sales')
         .select(`
@@ -33,7 +34,12 @@ export const useSales = () => {
         `)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching sales:', error);
+        throw error;
+      }
+      
+      console.log('Sales fetched:', data?.length);
       return data as Sale[];
     }
   });
@@ -76,14 +82,20 @@ export const useDeleteSale = () => {
   
   return useMutation({
     mutationFn: async (saleId: string) => {
+      console.log('Deleting sale with ID:', saleId);
       const { error } = await supabase
         .from('sales')
         .delete()
         .eq('id', saleId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting sale:', error);
+        throw error;
+      }
+      console.log('Sale deleted successfully');
     },
     onSuccess: () => {
+      console.log('Invalidating sales queries after deletion...');
       queryClient.invalidateQueries({ queryKey: ['sales'] });
       toast({
         title: "Sucesso",
