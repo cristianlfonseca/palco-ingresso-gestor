@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,16 +22,15 @@ import {
 const Dashboard = () => {
   const { state } = useTheater();
   const { data: students = [] } = useStudents();
-  const { sales } = useSalesSync();
+  const { sales } = useSalesSync(); // Usando o hook que sincroniza automaticamente
   const deleteSale = useDeleteSale();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState('');
 
-  // Estatísticas gerais
+  // ... keep existing code (estatísticas gerais, vendas por setor, etc.)
   const totalSeats = state.seats.length;
   const totalRevenue = sales.reduce((sum, sale) => sum + sale.total_value, 0);
 
-  // Vendas por setor - baseado nas vendas reais
   const seatsSoldESQ = sales.reduce((count, sale) => {
     return count + sale.seats.filter(seatId => seatId.includes('-ESQ')).length;
   }, 0);
@@ -47,7 +45,6 @@ const Dashboard = () => {
 
   const totalSoldSeats = seatsSoldESQ + seatsSoldCENTRAL + seatsSoldDIR;
 
-  // Filtrar vendas
   const filteredSales = sales.filter(sale => {
     const matchesSearch = sale.buyer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          sale.buyer_phone.includes(searchTerm);
@@ -63,13 +60,12 @@ const Dashboard = () => {
   };
 
   const getSeatInfo = (seatId: string) => {
-    // Parse do formato "A1-ESQ" para extrair informações
     const parts = seatId.split('-');
     if (parts.length === 2) {
-      const seatPart = parts[0]; // A1
-      const sector = parts[1]; // ESQ
-      const row = seatPart.charAt(0); // A
-      const number = seatPart.slice(1); // 1
+      const seatPart = parts[0];
+      const sector = parts[1];
+      const row = seatPart.charAt(0);
+      const number = seatPart.slice(1);
       return `${sector} ${row}${number}`;
     }
     return seatId;

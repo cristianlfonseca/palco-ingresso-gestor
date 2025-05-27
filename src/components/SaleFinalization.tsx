@@ -7,10 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Calendar, MapPin } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useStudents } from '@/hooks/useStudents';
-import { useCreateSale } from '@/hooks/useSales';
+import { useCreateSale, useSales } from '@/hooks/useSales';
 import { useSettings } from '@/hooks/useSettings';
 
 const SaleFinalization = () => {
@@ -18,6 +18,7 @@ const SaleFinalization = () => {
   const navigate = useNavigate();
   const { data: students = [] } = useStudents();
   const { data: settings } = useSettings();
+  const { data: allSales = [] } = useSales();
   const createSale = useCreateSale();
   
   const [buyerName, setBuyerName] = useState('');
@@ -31,6 +32,11 @@ const SaleFinalization = () => {
 
   const ticketPrice = settings?.ticket_price || 10;
   const totalValue = selectedSeats.length * ticketPrice;
+
+  // Filtrar vendas do aluno selecionado
+  const studentSales = selectedStudentId && selectedStudentId !== 'new' 
+    ? allSales.filter(sale => sale.student_id === selectedStudentId)
+    : [];
 
   const handleStudentSelection = (studentId: string) => {
     setSelectedStudentId(studentId);
@@ -91,6 +97,22 @@ const SaleFinalization = () => {
     navigate('/');
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString('pt-BR');
+  };
+
+  const getSeatInfo = (seatId: string) => {
+    const parts = seatId.split('-');
+    if (parts.length === 2) {
+      const seatPart = parts[0];
+      const sector = parts[1];
+      const row = seatPart.charAt(0);
+      const number = seatPart.slice(1);
+      return `${sector} ${row}${number}`;
+    }
+    return seatId;
+  };
+
   if (selectedSeats.length === 0) {
     return (
       <div className="max-w-2xl mx-auto p-6 text-center">
@@ -111,7 +133,7 @@ const SaleFinalization = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6">
       <div className="flex items-center gap-4 mb-6">
         <Button variant="outline" onClick={() => navigate('/')}>
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -120,7 +142,7 @@ const SaleFinalization = () => {
         <h2 className="text-3xl font-bold text-gray-900">Finalizar Venda</h2>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-6 mb-6">
         {/* Resumo da Compra */}
         <Card>
           <CardHeader>
@@ -213,6 +235,48 @@ const SaleFinalization = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Histórico de Compras do Aluno */}
+      {selectedStudentId && selectedStudentId !== 'new' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Histórico de Compras do Aluno</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {studentSales.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Este aluno ainda não possui compras registradas.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {studentSales.map(sale => (
+                  <div key={sale.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h4 className="font-semibold text-lg">{sale.buyer_name}</h4>
+                        <div className="flex items-center gap-1 text-gray-600 text-sm">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(sale.sale_date)}</span>
+                        </div>
+                      </div>
+                      <div className="text-lg font-bold text-green-600">
+                        R$ {sale.total_value.toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm font-medium">Assentos: </span>
+                      <span className="text-sm text-gray-600">
+                        {sale.seats.map(seatId => getSeatInfo(seatId)).join(', ')}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
