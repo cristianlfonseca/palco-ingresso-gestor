@@ -24,7 +24,6 @@ const SaleFinalization = () => {
   const [buyerName, setBuyerName] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
-  const [useStudentData, setUseStudentData] = useState(false);
 
   const selectedSeats = state.seats.filter(seat => 
     state.selectedSeats.includes(seat.id)
@@ -45,12 +44,10 @@ const SaleFinalization = () => {
       if (student) {
         setBuyerName(student.responsible_name);
         setBuyerPhone(student.phone);
-        setUseStudentData(true);
       }
     } else {
       setBuyerName('');
       setBuyerPhone('');
-      setUseStudentData(false);
     }
   };
 
@@ -203,7 +200,7 @@ const SaleFinalization = () => {
                   value={buyerName}
                   onChange={(e) => setBuyerName(e.target.value)}
                   required
-                  disabled={useStudentData}
+                  placeholder="Digite o nome do comprador"
                 />
               </div>
 
@@ -215,7 +212,6 @@ const SaleFinalization = () => {
                   onChange={(e) => setBuyerPhone(e.target.value)}
                   placeholder="(XX) XXXXX-XXXX"
                   required
-                  disabled={useStudentData}
                 />
               </div>
 
