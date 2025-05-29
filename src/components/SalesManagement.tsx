@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -59,7 +58,7 @@ const SalesManagement = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState('');
-  const [filterStudent, setFilterStudent] = useState('');
+  const [filterStudent, setFilterStudent] = useState('all');
   const [selectedSale, setSelectedSale] = useState(null);
 
   const filteredSales = sales.filter(sale => {
@@ -69,7 +68,7 @@ const SalesManagement = () => {
     const matchesDate = !filterDate || 
                        new Date(sale.sale_date).toISOString().split('T')[0] === filterDate;
 
-    const matchesStudent = !filterStudent || 
+    const matchesStudent = filterStudent === 'all' || 
                           sale.student_id === filterStudent;
 
     return matchesSearch && matchesDate && matchesStudent;
@@ -106,7 +105,7 @@ const SalesManagement = () => {
   const clearFilters = () => {
     setSearchTerm('');
     setFilterDate('');
-    setFilterStudent('');
+    setFilterStudent('all');
   };
 
   const totalRevenue = filteredSales.reduce((sum, sale) => sum + sale.total_value, 0);
@@ -207,7 +206,7 @@ const SalesManagement = () => {
                 <SelectValue placeholder="Filtrar por aluno" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os compradores</SelectItem>
+                <SelectItem value="all">Todos os compradores</SelectItem>
                 {students.map(student => (
                   <SelectItem key={student.id} value={student.id}>
                     {student.student_name}
