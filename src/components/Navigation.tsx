@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, Users, ShoppingCart, BarChart3, LogOut, Phone } from 'lucide-react';
+import { Home, Users, ShoppingCart, BarChart3, LogOut, Phone, List } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const Navigation = () => {
@@ -49,6 +49,16 @@ const Navigation = () => {
               >
                 <ShoppingCart className="w-4 h-4" />
                 Finalizar Venda
+              </Button>
+            </Link>
+            
+            <Link to="/sales-management">
+              <Button 
+                variant={isActive('/sales-management') ? 'default' : 'ghost'} 
+                className="flex items-center gap-2"
+              >
+                <List className="w-4 h-4" />
+                Vendas
               </Button>
             </Link>
             

@@ -50,9 +50,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from '@/hooks/use-toast';
 
 const SalesManagement = () => {
-  const { data: sales = [], isLoading } = useSales();
+  const { data: sales = [], isLoading, refetch } = useSales();
   const { data: students = [] } = useStudents();
   const deleteSale = useDeleteSale();
   
@@ -94,11 +95,26 @@ const SalesManagement = () => {
     return seatId;
   };
 
-  const handleDeleteSale = async (saleId: string) => {
+  const handleDeleteSale = async (saleId: string, buyerName: string) => {
     try {
+      console.log('Iniciando exclusão da venda:', saleId);
       await deleteSale.mutateAsync(saleId);
+      console.log('Venda excluída com sucesso');
+      
+      // Força a atualização dos dados
+      await refetch();
+      
+      toast({
+        title: "Sucesso",
+        description: `Venda de ${buyerName} foi excluída com sucesso!`,
+      });
     } catch (error) {
       console.error('Erro ao deletar venda:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir a venda. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -343,7 +359,11 @@ const SalesManagement = () => {
                         
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm" disabled={deleteSale.isPending}>
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              disabled={deleteSale.isPending}
+                            >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </AlertDialogTrigger>
@@ -359,8 +379,11 @@ const SalesManagement = () => {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteSale(sale.id)}>
-                                Deletar
+                              <AlertDialogAction 
+                                onClick={() => handleDeleteSale(sale.id, sale.buyer_name)}
+                                disabled={deleteSale.isPending}
+                              >
+                                {deleteSale.isPending ? 'Deletando...' : 'Deletar'}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
