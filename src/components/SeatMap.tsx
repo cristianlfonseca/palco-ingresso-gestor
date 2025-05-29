@@ -10,7 +10,8 @@ const SeatMap = () => {
   const { isLoading } = useSalesSync();
   const navigate = useNavigate();
   
-  const rows = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0, 21); // A-U
+  // Inverter a ordem das fileiras - U até A (de baixo para cima)
+  const rows = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0, 21).reverse(); // U-A
   
   const getSeatColor = (status: string) => {
     switch (status) {
@@ -75,13 +76,6 @@ const SeatMap = () => {
             <div className="w-4 h-4 bg-gray-400 border-gray-500 border rounded"></div>
             <span>Bloqueado</span>
           </div>
-        </div>
-      </div>
-
-      {/* Palco */}
-      <div className="text-center mb-8">
-        <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white py-3 px-8 rounded-lg inline-block font-semibold">
-          PALCO
         </div>
       </div>
 
@@ -180,6 +174,13 @@ const SeatMap = () => {
               );
             })}
           </div>
+        </div>
+      </div>
+
+      {/* Palco */}
+      <div className="text-center mb-8">
+        <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white py-3 px-8 rounded-lg inline-block font-semibold">
+          PALCO
         </div>
       </div>
 

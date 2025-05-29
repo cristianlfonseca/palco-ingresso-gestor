@@ -11,6 +11,7 @@ export interface Sale {
   seats: string[];
   total_value: number;
   sale_date: string;
+  payment_method?: string;
   created_at?: string;
   students?: {
     student_name: string;

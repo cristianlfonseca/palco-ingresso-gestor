@@ -24,6 +24,7 @@ const SaleFinalization = () => {
   const [buyerName, setBuyerName] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState('');
 
   const selectedSeats = state.seats.filter(seat => 
     state.selectedSeats.includes(seat.id)
@@ -54,10 +55,10 @@ const SaleFinalization = () => {
   const handleCompleteSale = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!buyerName || !buyerPhone) {
+    if (!buyerName || !paymentMethod) {
       toast({
         title: "Erro",
-        description: "Preencha todos os campos obrigatórios",
+        description: "Preencha o nome do comprador e a forma de pagamento",
         variant: "destructive"
       });
       return;
@@ -79,7 +80,8 @@ const SaleFinalization = () => {
         student_id: selectedStudentId && selectedStudentId !== 'new' ? selectedStudentId : undefined,
         seats: state.selectedSeats,
         total_value: totalValue,
-        sale_date: new Date().toISOString()
+        sale_date: new Date().toISOString(),
+        payment_method: paymentMethod
       });
 
       clearSelection();
@@ -205,14 +207,28 @@ const SaleFinalization = () => {
               </div>
 
               <div>
-                <Label htmlFor="buyerPhone">Telefone *</Label>
+                <Label htmlFor="buyerPhone">Telefone</Label>
                 <Input
                   id="buyerPhone"
                   value={buyerPhone}
                   onChange={(e) => setBuyerPhone(e.target.value)}
                   placeholder="(XX) XXXXX-XXXX"
-                  required
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="payment-method">Forma de Pagamento *</Label>
+                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a forma de pagamento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="debito">Débito</SelectItem>
+                    <SelectItem value="credito">Crédito</SelectItem>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="cortesia">Cortesia</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex gap-2 pt-4">
