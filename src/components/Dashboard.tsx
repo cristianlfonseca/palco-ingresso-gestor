@@ -164,12 +164,13 @@ const Dashboard = () => {
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span>PNE ESQ</span>
+                <span>ESQ</span>
                 <div className="flex items-center gap-2">
                   <div className="w-32 bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-blue-600 h-2 rounded-full" 
-                      style={{ width: `${totalSeats > 0 ? (seatsSoldESQ / (totalSeats / 3)) * 100 : 0}%` }}
+                      style={{ width: `${Math.min((seatsSoldESQ / (177 / 3)) * 100, 100)}%` }}
+                      // style={{ width: `${totalSeats > 0 ? (seatsSoldESQ / (totalSeats / 3)) * 100 : 0}%` }}
                     ></div>
                   </div>
                   <span className="text-sm font-semibold">{seatsSoldESQ}</span>
@@ -180,20 +181,22 @@ const Dashboard = () => {
                 <div className="flex items-center gap-2">
                   <div className="w-32 bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-green-600 h-2 rounded-full" 
-                      style={{ width: `${totalSeats > 0 ? (seatsSoldCENTRAL / (totalSeats / 3)) * 100 : 0}%` }}
+                      className="bg-green-600 h-2 rounded-full"
+                      style={{ width: `${Math.min((seatsSoldCENTRAL / (360 / 3)) * 100, 100)}%` }} 
+                      // style={{ width: `${totalSeats > 0 ? (seatsSoldCENTRAL / (totalSeats / 3)) * 100 : 0}%` }}
                     ></div>
                   </div>
                   <span className="text-sm font-semibold">{seatsSoldCENTRAL}</span>
                 </div>
               </div>
               <div className="flex justify-between items-center">
-                <span>PNE DIR</span>
+                <span>DIR</span>
                 <div className="flex items-center gap-2">
                   <div className="w-32 bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-orange-600 h-2 rounded-full" 
-                      style={{ width: `${totalSeats > 0 ? (seatsSoldDIR / (totalSeats / 3)) * 100 : 0}%` }}
+                      style={{ width: `${Math.min((seatsSoldDIR / (177 / 3)) * 100, 100)}%` }}
+                      // style={{ width: `${totalSeats > 0 ? (seatsSoldDIR / (totalSeats / 3)) * 100 : 0}%` }}
                     ></div>
                   </div>
                   <span className="text-sm font-semibold">{seatsSoldDIR}</span>

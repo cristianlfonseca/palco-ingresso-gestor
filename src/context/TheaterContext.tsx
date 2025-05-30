@@ -21,7 +21,7 @@ const TheaterContext = createContext<TheaterContextType | undefined>(undefined);
 // Gerar layout de assentos conforme especificação
 const generateSeats = (): Seat[] => {
   const seats: Seat[] = [];
-  const rows = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0, 21); // A-U
+  const rows = 'ABCDEFGHIJLMNOPQRSTUVWXYZ'.split('').slice(0, 21); // A-U
   
   // Configuração específica de assentos por fileira
   const seatConfig: { [key: string]: { esq: number[], central: number[], dir: number[] } } = {
