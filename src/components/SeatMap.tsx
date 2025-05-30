@@ -80,18 +80,20 @@ const SeatMap = () => {
       </div>
 
       {/* Mapa de Assentos */}
-      <div className="flex justify-center gap-8 mb-8">
+      <div className="flex justify-center gap-8 mb-8" >
         {/* Setor PNE ESQ */}
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center" >
           <h3 className="text-xl font-bold mb-4 text-gray-700">PNE ESQ</h3>
-          <div className="space-y-2">
+          <div className="space-y-2" >
             {rows.map(row => {
               const seats = getSeatsByRowAndSector(row, 'PNE ESQ');
               if (seats.length === 0) return null;
               return (
-                <div key={`${row}-ESQ`} className="flex items-center gap-1">
+                // <div key={`${row}-ESQ`} className="flex items-center gap-1 ">
+                <div key={`${row}-ESQ`} className="flex justify-end w-full ">
                   <span className="w-8 text-center font-bold text-gray-600">{row}</span>
-                  <div className="flex gap-1">
+                  {/* <div className="flex gap-1" > */}
+                    <div className="flex gap-1 justify-end w-full">
                     {seats.map(seat => (
                       <button
                         key={seat.id}

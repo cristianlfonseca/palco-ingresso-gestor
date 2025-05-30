@@ -106,7 +106,7 @@ const StudentManagement = () => {
                   id="responsible_name"
                   value={formData.responsible_name}
                   onChange={(e) => setFormData({ ...formData, responsible_name: e.target.value })}
-                  required
+                  // required
                 />
               </div>
               <div>
@@ -116,7 +116,7 @@ const StudentManagement = () => {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="(XX) XXXXX-XXXX"
-                  required
+                  // required
                 />
               </div>
               <div className="flex gap-2">
