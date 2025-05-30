@@ -55,6 +55,15 @@ const SaleFinalization = () => {
   const handleCompleteSale = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!selectedStudentId || selectedStudentId === 'new') {
+      toast({
+        title: "Erro",
+        description: "Selecione um aluno cadastrado",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (!buyerName || !paymentMethod) {
       toast({
         title: "Erro",
