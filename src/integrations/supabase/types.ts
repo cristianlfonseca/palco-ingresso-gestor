@@ -63,6 +63,7 @@ export type Database = {
           buyer_phone: string
           created_at: string | null
           id: string
+          payment_method: string | null
           sale_date: string | null
           seats: string[]
           student_id: string | null
@@ -73,6 +74,7 @@ export type Database = {
           buyer_phone: string
           created_at?: string | null
           id?: string
+          payment_method?: string | null
           sale_date?: string | null
           seats: string[]
           student_id?: string | null
@@ -83,6 +85,7 @@ export type Database = {
           buyer_phone?: string
           created_at?: string | null
           id?: string
+          payment_method?: string | null
           sale_date?: string | null
           seats?: string[]
           student_id?: string | null

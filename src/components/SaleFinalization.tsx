@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTheater } from '../context/TheaterContext';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { useStudents } from '@/hooks/useStudents';
 import { useCreateSale, useSales } from '@/hooks/useSales';
 import { useSettings } from '@/hooks/useSettings';
+import StudentCombobox from './StudentCombobox';
 
 const SaleFinalization = () => {
   const { state, clearSelection } = useTheater();
@@ -180,19 +180,11 @@ const SaleFinalization = () => {
             <form onSubmit={handleCompleteSale} className="space-y-4">
               <div>
                 <Label htmlFor="student-select">Selecionar Aluno Cadastrado (opcional)</Label>
-                <Select value={selectedStudentId} onValueChange={handleStudentSelection}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um aluno ou digite novos dados" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="new">Novo comprador</SelectItem>
-                    {students.map(student => (
-                      <SelectItem key={student.id} value={student.id}>
-                        {student.student_name} - {student.responsible_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <StudentCombobox
+                  students={students}
+                  value={selectedStudentId}
+                  onValueChange={handleStudentSelection}
+                />
               </div>
 
               <div>
