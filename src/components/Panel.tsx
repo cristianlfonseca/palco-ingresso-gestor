@@ -66,7 +66,7 @@ const Panel = () => {
                         key={call.id} 
                         className={`border rounded-lg p-3 transition-all duration-300 ${
                           index === 0 
-                            ? 'bg-blue-50 border-blue-200 scale-105 shadow-md' 
+                            ? 'bg-blue-50 border-blue-200  shadow-md' 
                             : 'bg-white border-gray-200'
                         }`}
                       >
