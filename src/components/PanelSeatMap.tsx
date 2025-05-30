@@ -7,7 +7,8 @@ const PanelSeatMap = () => {
   const { state } = useTheater();
   const { isLoading } = useSalesSync();
   
-  const rows = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0, 21); // A-U
+  // Inverter a ordem das fileiras - U até A (de baixo para cima)
+  const rows = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0, 21).reverse(); // U-A
   
   const getSeatColor = (status: string) => {
     switch (status) {
@@ -49,15 +50,8 @@ const PanelSeatMap = () => {
         </div>
       </div>
 
-      {/* Palco */}
-      <div className="text-center mb-4">
-        <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white py-2 px-4 rounded-lg inline-block text-sm font-semibold">
-          PALCO
-        </div>
-      </div>
-
       {/* Mapa de Assentos - versão compacta */}
-      <div className="flex justify-center gap-4">
+      <div className="flex justify-center gap-4 mb-4">
         {/* Setor PNE ESQ */}
         <div className="flex flex-col items-center">
           <h4 className="text-sm font-bold mb-2 text-gray-700">PNE ESQ</h4>
@@ -66,9 +60,9 @@ const PanelSeatMap = () => {
               const seats = getSeatsByRowAndSector(row, 'PNE ESQ');
               if (seats.length === 0) return null;
               return (
-                <div key={`${row}-ESQ`} className="flex items-center gap-1">
+                <div key={`${row}-ESQ`} className="flex justify-end w-full">
                   <span className="w-4 text-center text-xs font-bold text-gray-600">{row}</span>
-                  <div className="flex gap-0.5">
+                  <div className="flex gap-0.5 justify-end w-full">
                     {seats.map(seat => (
                       <div
                         key={seat.id}
@@ -127,6 +121,13 @@ const PanelSeatMap = () => {
               );
             })}
           </div>
+        </div>
+      </div>
+
+      {/* Palco */}
+      <div className="text-center">
+        <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white py-2 px-4 rounded-lg inline-block text-sm font-semibold">
+          PALCO
         </div>
       </div>
     </div>
