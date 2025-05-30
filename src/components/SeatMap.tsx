@@ -57,7 +57,7 @@ const SeatMap = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <div className="text-center mb-8">
+      {/* <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Mapa de Assentos do Teatro</h2>
         <div className="flex justify-center items-center gap-6 text-sm">
           <div className="flex items-center gap-2">
@@ -77,13 +77,13 @@ const SeatMap = () => {
             <span>Bloqueado</span>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Mapa de Assentos */}
       <div className="flex justify-center gap-8 mb-8" >
-        {/* Setor PNE ESQ */}
+        {/* Setor ESQ */}
         <div className="flex flex-col items-center" >
-          <h3 className="text-xl font-bold mb-4 text-gray-700">PNE ESQ</h3>
+          <h3 className="text-xl font-bold mb-4 text-gray-700">ESQ</h3>
           <div className="space-y-2" >
             {rows.map(row => {
               const seats = getSeatsByRowAndSector(row, 'PNE ESQ');
@@ -146,9 +146,9 @@ const SeatMap = () => {
           </div>
         </div>
 
-        {/* Setor PNE DIR */}
+        {/* Setor DIR */}
         <div className="flex flex-col items-center">
-          <h3 className="text-xl font-bold mb-4 text-gray-700">PNE DIR</h3>
+          <h3 className="text-xl font-bold mb-4 text-gray-700">DIR</h3>
           <div className="space-y-2">
             {rows.map(row => {
               const seats = getSeatsByRowAndSector(row, 'PNE DIR');
@@ -186,7 +186,29 @@ const SeatMap = () => {
         </div>
       </div>
 
-      {/* Controles */}
+     <div className="text-center mb-8">
+        {/* <h2 className="text-3xl font-bold text-gray-900 mb-4">Mapa de Assentos do Teatro</h2> */}
+        <div className="flex justify-center items-center gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-green-100 border-green-300 border rounded"></div>
+            <span>Disponível</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-blue-500 border-blue-600 border rounded"></div>
+            <span>Selecionado</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-red-500 border-red-600 border rounded"></div>
+            <span>Vendido</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gray-400 border-gray-500 border rounded"></div>
+            <span>Bloqueado</span>
+          </div>
+        </div>
+      </div>      
+
+      
       <div className="text-center space-y-4">
         {state.selectedSeats.length > 0 && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">

@@ -8,7 +8,7 @@ const PanelSeatMap = () => {
   const { isLoading } = useSalesSync();
   
   // Inverter a ordem das fileiras - U até A (de baixo para cima)
-  const rows = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0, 21).reverse(); // U-A
+  const rows = 'ABCDEFGHIJLMNOPQRSTUVWXYZ'.split('').slice(0, 21).reverse(); // U-A
   
   const getSeatColor = (status: string) => {
     switch (status) {
@@ -36,7 +36,7 @@ const PanelSeatMap = () => {
 
   return (
     <div className="bg-white rounded-lg p-4">
-      <div className="text-center mb-4">
+      {/* <div className="text-center mb-4">
         <h3 className="text-lg font-bold text-gray-900 mb-2">Mapa de Assentos</h3>
         <div className="flex justify-center items-center gap-4 text-xs">
           <div className="flex items-center gap-1">
@@ -48,13 +48,13 @@ const PanelSeatMap = () => {
             <span>Vendido</span>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Mapa de Assentos - versão compacta */}
       <div className="flex justify-center gap-4 mb-4">
-        {/* Setor PNE ESQ */}
+        {/* Setor ESQ */}
         <div className="flex flex-col items-center">
-          <h4 className="text-sm font-bold mb-2 text-gray-700">PNE ESQ</h4>
+          <h4 className="text-sm font-bold mb-2 text-gray-700">ESQ</h4>
           <div className="space-y-1">
             {rows.map(row => {
               const seats = getSeatsByRowAndSector(row, 'PNE ESQ');
@@ -99,9 +99,9 @@ const PanelSeatMap = () => {
           </div>
         </div>
 
-        {/* Setor PNE DIR */}
+        {/* Setor DIR */}
         <div className="flex flex-col items-center">
-          <h4 className="text-sm font-bold mb-2 text-gray-700">PNE DIR</h4>
+          <h4 className="text-sm font-bold mb-2 text-gray-700">DIR</h4>
           <div className="space-y-1">
             {rows.map(row => {
               const seats = getSeatsByRowAndSector(row, 'PNE DIR');
@@ -128,6 +128,19 @@ const PanelSeatMap = () => {
       <div className="text-center">
         <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white py-2 px-4 rounded-lg inline-block text-sm font-semibold">
           PALCO
+        </div>
+      </div>
+            <div className="text-center mb-4">
+        <h3 className="text-lg font-bold text-gray-900 mb-2">Mapa de Assentos</h3>
+        <div className="flex justify-center items-center gap-4 text-xs">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-green-100 border-green-300 border rounded"></div>
+            <span>Disponível</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-red-500 border-red-600 border rounded"></div>
+            <span>Vendido</span>
+          </div>
         </div>
       </div>
     </div>

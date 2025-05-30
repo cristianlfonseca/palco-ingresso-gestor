@@ -1,7 +1,7 @@
 
 export interface Seat {
   id: string;
-  sector: 'PNE ESQ' | 'CENTRAL' | 'PNE DIR';
+  sector: 'ESQ' | 'CENTRAL' | 'DIR';
   row: string;
   number: number;
   status: 'available' | 'selected' | 'sold' | 'blocked';
