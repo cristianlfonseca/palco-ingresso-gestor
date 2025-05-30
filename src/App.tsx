@@ -30,7 +30,6 @@ const App = () => (
             <div className="min-h-screen bg-gray-50">
               <Routes>
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/panel" element={<Panel />} />
                 <Route path="/*" element={
                   <ProtectedRoute>
                     <Navigation />
@@ -42,6 +41,7 @@ const App = () => (
                       <Route path="/sales-management" element={<SalesManagement />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="/password-control" element={<PasswordControl />} />
+                      <Route path="/panel" element={<Panel />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </ProtectedRoute>
