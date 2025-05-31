@@ -11,7 +11,7 @@ const SeatMap = () => {
   const navigate = useNavigate();
   
   // Inverter a ordem das fileiras - U até A (de baixo para cima)
-  const rows = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0, 21).reverse(); // U-A
+  const rows = 'ABCDEFGHIJLMNOPQRSTUVWXYZ'.split('').slice(0, 21).reverse(); // U-A
   
   const getSeatColor = (status: string) => {
     switch (status) {
