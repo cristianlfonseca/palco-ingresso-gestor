@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, Users, ShoppingCart, BarChart3, LogOut, Phone, List } from 'lucide-react';
+import { Home, Users, ShoppingCart, BarChart3, LogOut, Phone, List, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const Navigation = () => {
@@ -16,9 +16,14 @@ const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <div className="flex-shrink-0">
+            {/* <div className="flex-shrink-0">
               <h1 className="text-2xl font-bold text-blue-600">Teatro Manager</h1>
-            </div>
+            </div> */}
+              <img 
+                src="/logo.jpg" 
+                alt="Logo Teatro Manager"
+                className="h-10 object-contain"
+              />
           </div>
           
           <div className="flex items-center space-x-4">
@@ -28,7 +33,7 @@ const Navigation = () => {
                 className="flex items-center gap-2"
               >
                 <Home className="w-4 h-4" />
-                Mapa de Assentos
+                Assentos
               </Button>
             </Link>
             
@@ -78,7 +83,17 @@ const Navigation = () => {
                 className="flex items-center gap-2"
               >
                 <Phone className="w-4 h-4" />
-                Controle de Senhas
+                Senhas
+              </Button>
+            </Link>
+
+            <Link to="/panel">
+              <Button 
+                variant={isActive('/panel') ? 'default' : 'ghost'} 
+                className="flex items-center gap-2"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                
               </Button>
             </Link>
 
