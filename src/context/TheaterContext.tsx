@@ -58,7 +58,7 @@ const generateSeats = (): Seat[] => {
     config.esq.forEach(number => {
       seats.push({
         id: `${row}${number}-ESQ`,
-        sector: 'ESQ',
+        sector: 'PNE ESQ',
         row,
         number,
         status: 'available'
@@ -80,7 +80,7 @@ const generateSeats = (): Seat[] => {
     config.dir.forEach(number => {
       seats.push({
         id: `${row}${number}-DIR`,
-        sector: 'DIR',
+        sector: 'PNE DIR',
         row,
         number,
         status: 'available'
