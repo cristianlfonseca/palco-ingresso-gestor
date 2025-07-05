@@ -13,7 +13,9 @@ import {
   Eye,
   Filter,
   DollarSign,
-  User
+  User,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { useSales, useDeleteSale } from '@/hooks/useSales';
 import { useStudents } from '@/hooks/useStudents';
@@ -50,6 +52,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { toast } from '@/hooks/use-toast';
 
 const SalesManagement = () => {
@@ -58,21 +65,39 @@ const SalesManagement = () => {
   const deleteSale = useDeleteSale();
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [studentSearch, setStudentSearch] = useState('');
+  const [seatSearch, setSeatSearch] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [filterStudent, setFilterStudent] = useState('all');
   const [selectedSale, setSelectedSale] = useState(null);
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
 
   const filteredSales = sales.filter(sale => {
-    const matchesSearch = sale.buyer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    // Busca por nome ou telefone
+    const matchesSearch = !searchTerm || 
+                         sale.buyer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          sale.buyer_phone.includes(searchTerm);
 
+    // Busca por aluno
+    const matchesStudentSearch = !studentSearch || 
+                                (sale.students && 
+                                 sale.students.student_name.toLowerCase().includes(studentSearch.toLowerCase()));
+
+    // Busca por assento
+    const matchesSeatSearch = !seatSearch || 
+                             sale.seats.some(seatId => 
+                               getSeatInfo(seatId).toLowerCase().includes(seatSearch.toLowerCase())
+                             );
+
+    // Filtro por data
     const matchesDate = !filterDate || 
                        new Date(sale.sale_date).toISOString().split('T')[0] === filterDate;
 
+    // Filtro por aluno específico
     const matchesStudent = filterStudent === 'all' || 
                           sale.student_id === filterStudent;
 
-    return matchesSearch && matchesDate && matchesStudent;
+    return matchesSearch && matchesStudentSearch && matchesSeatSearch && matchesDate && matchesStudent;
   });
 
   const formatDate = (dateString: string) => {
@@ -120,9 +145,13 @@ const SalesManagement = () => {
 
   const clearFilters = () => {
     setSearchTerm('');
+    setStudentSearch('');
+    setSeatSearch('');
     setFilterDate('');
     setFilterStudent('all');
   };
+
+  const hasActiveFilters = searchTerm || studentSearch || seatSearch || filterDate || filterStudent !== 'all';
 
   const totalRevenue = filteredSales.reduce((sum, sale) => sum + sale.total_value, 0);
   const totalTickets = filteredSales.reduce((sum, sale) => sum + sale.seats.length, 0);
@@ -169,7 +198,7 @@ const SalesManagement = () => {
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{totalTickets}</div>
+            <div className="text-2xl font-bold text-blue-600">{filteredSales.reduce((sum, sale) => sum + sale.seats.length, 0)}</div>
             <p className="text-xs text-muted-foreground">
               Total de assentos vendidos
             </p>
@@ -182,7 +211,7 @@ const SalesManagement = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">R$ {totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-green-600">R$ {filteredSales.reduce((sum, sale) => sum + sale.total_value, 0).toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">
               Receita das vendas filtradas
             </p>
@@ -190,52 +219,96 @@ const SalesManagement = () => {
         </Card>
       </div>
 
-      {/* Filtros */}
+      {/* Filtros Expandidos */}
       <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="w-5 h-5" />
-            Filtros de Busca
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Buscar por nome ou telefone..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <Input
-              type="date"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
-              placeholder="Filtrar por data"
-            />
-            
-            <Select value={filterStudent} onValueChange={setFilterStudent}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filtrar por aluno" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os compradores</SelectItem>
-                {students.map(student => (
-                  <SelectItem key={student.id} value={student.id}>
-                    {student.student_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Button variant="outline" onClick={clearFilters}>
-              Limpar Filtros
-            </Button>
-          </div>
-        </CardContent>
+        <Collapsible open={isFiltersExpanded} onOpenChange={setIsFiltersExpanded}>
+          <CardHeader>
+            <CollapsibleTrigger asChild>
+              <div className="flex items-center justify-between cursor-pointer">
+                <CardTitle className="flex items-center gap-2">
+                  <Filter className="w-5 h-5" />
+                  Filtros de Busca
+                  {hasActiveFilters && (
+                    <Badge variant="secondary" className="ml-2">
+                      Filtros ativos
+                    </Badge>
+                  )}
+                </CardTitle>
+                {isFiltersExpanded ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </div>
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Primeira linha de filtros */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Buscar por nome ou telefone..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Buscar por nome do aluno..."
+                      value={studentSearch}
+                      onChange={(e) => setStudentSearch(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Buscar por assento (ex: CENTRAL H1)..."
+                      value={seatSearch}
+                      onChange={(e) => setSeatSearch(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                
+                {/* Segunda linha de filtros */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Input
+                    type="date"
+                    value={filterDate}
+                    onChange={(e) => setFilterDate(e.target.value)}
+                    placeholder="Filtrar por data"
+                  />
+                  
+                  <Select value={filterStudent} onValueChange={setFilterStudent}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filtrar por aluno" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os compradores</SelectItem>
+                      {students.map(student => (
+                        <SelectItem key={student.id} value={student.id}>
+                          {student.student_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button variant="outline" onClick={clearFilters}>
+                    Limpar Filtros
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
       </Card>
 
       {/* Lista de Vendas */}
@@ -277,7 +350,7 @@ const SalesManagement = () => {
                         <span className="text-gray-500">-</span>
                       )}
                     </TableCell>
-                    <TableCell>{formatDateOnly(sale.sale_date)}</TableCell>
+                    <TableCell>{new Date(sale.sale_date).toLocaleDateString('pt-BR')}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
                         {sale.seats.length} assento{sale.seats.length > 1 ? 's' : ''}
@@ -329,7 +402,7 @@ const SalesManagement = () => {
                                   <Calendar className="w-4 h-4" />
                                   Data da Venda
                                 </h4>
-                                <p>{formatDate(sale.sale_date)}</p>
+                                <p>{new Date(sale.sale_date).toLocaleString('pt-BR')}</p>
                               </div>
                               
                               <div>
@@ -399,6 +472,19 @@ const SalesManagement = () => {
       </Card>
     </div>
   );
+};
+
+// Função auxiliar para formatar informações do assento
+const getSeatInfo = (seatId: string) => {
+  const parts = seatId.split('-');
+  if (parts.length === 2) {
+    const seatPart = parts[0];
+    const sector = parts[1];
+    const row = seatPart.charAt(0);
+    const number = seatPart.slice(1);
+    return `${sector} ${row}${number}`;
+  }
+  return seatId;
 };
 
 export default SalesManagement;
