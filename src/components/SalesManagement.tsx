@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -59,6 +60,19 @@ import {
 } from "@/components/ui/collapsible";
 import { toast } from '@/hooks/use-toast';
 
+// Função auxiliar para formatar informações do assento
+const getSeatInfo = (seatId: string) => {
+  const parts = seatId.split('-');
+  if (parts.length === 2) {
+    const seatPart = parts[0];
+    const sector = parts[1];
+    const row = seatPart.charAt(0);
+    const number = seatPart.slice(1);
+    return `${sector} ${row}${number}`;
+  }
+  return seatId;
+};
+
 const SalesManagement = () => {
   const { data: sales = [], isLoading, refetch } = useSales();
   const { data: students = [] } = useStudents();
@@ -106,18 +120,6 @@ const SalesManagement = () => {
 
   const formatDateOnly = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-
-  const getSeatInfo = (seatId: string) => {
-    const parts = seatId.split('-');
-    if (parts.length === 2) {
-      const seatPart = parts[0];
-      const sector = parts[1];
-      const row = seatPart.charAt(0);
-      const number = seatPart.slice(1);
-      return `${sector} ${row}${number}`;
-    }
-    return seatId;
   };
 
   const handleDeleteSale = async (saleId: string, buyerName: string) => {
@@ -474,17 +476,5 @@ const SalesManagement = () => {
   );
 };
 
-// Função auxiliar para formatar informações do assento
-const getSeatInfo = (seatId: string) => {
-  const parts = seatId.split('-');
-  if (parts.length === 2) {
-    const seatPart = parts[0];
-    const sector = parts[1];
-    const row = seatPart.charAt(0);
-    const number = seatPart.slice(1);
-    return `${sector} ${row}${number}`;
-  }
-  return seatId;
-};
-
 export default SalesManagement;
+
