@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, Users, ShoppingCart, BarChart3, LogOut, Phone, List, LayoutDashboard } from 'lucide-react';
+import { Home, Users, ShoppingCart, BarChart3, LogOut, Phone, List, LayoutDashboard, MapPin } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const Navigation = () => {
@@ -16,14 +16,11 @@ const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            {/* <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-blue-600">Teatro Manager</h1>
-            </div> */}
-              <img 
-                src="/logo.jpg" 
-                alt="Logo Teatro Manager"
-                className="h-10 object-contain"
-              />
+            <img 
+              src="/logo.jpg" 
+              alt="Logo Teatro Manager"
+              className="h-10 object-contain"
+            />
           </div>
           
           <div className="flex items-center space-x-4">
@@ -54,6 +51,16 @@ const Navigation = () => {
               >
                 <ShoppingCart className="w-4 h-4" />
                 Finalizar Venda
+              </Button>
+            </Link>
+            
+            <Link to="/seat-search">
+              <Button 
+                variant={isActive('/seat-search') ? 'default' : 'ghost'} 
+                className="flex items-center gap-2"
+              >
+                <MapPin className="w-4 h-4" />
+                Buscar Assento
               </Button>
             </Link>
             
